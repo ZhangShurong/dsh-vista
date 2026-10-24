@@ -46,6 +46,19 @@ the context window.
 
 ![dsh-vista in action](https://raw.githubusercontent.com/ZhangShurong/dsh-vista/main/assets/demo.png)
 
+## Based on VISTA
+
+dsh-vista is an adaptation of **VISTA: A Visual Harness for Reasoning in an
+Interactive World** by Qiushi Han, Keya Hu, Linlu Qiu, Cathy Wu, and Kaiming He
+(MIT):
+
+- Paper: https://arxiv.org/abs/2610.02200
+- Code: https://github.com/joshhhhhan/VISTA
+
+It brings VISTA's core ideas — lossless visual memory, active visual inspection,
+and exact pixel reading — into DeepSeek Harness. It is not the official VISTA
+implementation; it is a DSH-native adaptation.
+
 ## Why
 
 - **Compaction drops bytes, not meaning.** dsh-vista keeps the original bytes
@@ -166,27 +179,6 @@ profile patch:
 | `annotate` | `true` | Insert `<visual id="...">` before every archived image. |
 | `retentionDays` | `7` | Delete older archived visuals; `0` keeps forever. |
 
-## Verified against DSH 0.2.1-rc.2
-
-Tested end to end with `deepseek-flash`:
-
-1. `read_image` returned an image; dsh-vista archived it and appended
-   `<visual id="v1" source="tool:read_image" size="16x16">`.
-2. `visuals` listed `v1`.
-3. `inspect` cropped and enlarged the archived image and returned a
-   model-visible 1024×1024 PNG.
-4. `read_pixels` returned the expected `01 / 11` color samples.
-5. The model correctly described the red/blue quadrants.
-
-The attachment bridge in `src/content.ts` uses:
-
-```ts
-ctx.attachments.saveImage({ data, mediaType, name })
-ctx.attachments.imageHostPath(ref)
-```
-
-Both are confirmed in the installed `@deepseek-ai/dsh-attachment`.
-
 ## What this deliberately does not do
 
 - No environment adapters (ARC-AGI-3, GameWorld, browser automation).
@@ -197,50 +189,6 @@ Both are confirmed in the installed `@deepseek-ai/dsh-attachment`.
 Those belong in follow-up plugins. This one answers a narrower question: does
 addressable visual memory plus active inspection improve a DSH agent's visual
 work?
-
-## Development
-
-```sh
-pnpm install
-pnpm typecheck
-pnpm build
-npm pack --dry-run
-```
-
-The package is an ESM bundle. `lib/` is generated; `assets/` contains the logo
-and README images.
-
-## Releasing
-
-Publishing runs in GitHub Actions, not from a laptop.
-
-**Tag-driven (recommended):**
-
-```sh
-npm version patch          # or minor / major
-git push --follow-tags
-```
-
-**Manual button:**
-
-Actions → **Publish** → *Run workflow* → choose `patch`, `minor`, or `major`.
-The workflow bumps the version, commits, tags, and publishes.
-
-The workflow uses npm **Trusted Publishing** (OIDC) and publishes with
-provenance. One-time setup:
-
-1. Open https://www.npmjs.com/package/dsh-vista/access
-2. Add a **Trusted Publisher** → GitHub Actions:
-   - Owner: `ZhangShurong`
-   - Repository: `dsh-vista`
-   - Workflow filename: `publish.yml`
-3. No `NPM_TOKEN` secret is needed.
-
-If you prefer a token instead, add an `NPM_TOKEN` repository secret and set
-`NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}` on the publish step.
-
-CI (`.github/workflows/ci.yml`) runs typecheck, build, and `npm pack --dry-run`
-on every push and pull request.
 
 ## License
 
@@ -267,6 +215,18 @@ DSH agent 经常要处理截图、图表和渲染后的页面，但真正重要�
 即使原图已经掉出上下文窗口，模型之后仍然可以引用 `v12`。
 
 ![dsh-vista 实际效果](https://raw.githubusercontent.com/ZhangShurong/dsh-vista/main/assets/demo.png)
+
+## 基于 VISTA
+
+dsh-vista 基于何恺明团队（MIT）的 **VISTA: A Visual Harness for Reasoning in an
+Interactive World** 实现，作者为 Qiushi Han、Keya Hu、Linlu Qiu、Cathy Wu 和
+Kaiming He：
+
+- 论文：https://arxiv.org/abs/2610.02200
+- 代码：https://github.com/joshhhhhan/VISTA
+
+本插件把 VISTA 的核心思想——无损视觉记忆、主动视觉检视、精确像素读取——带进
+DeepSeek Harness。它不是 VISTA 官方实现，而是面向 DSH 的原生适配。
 
 ## 为什么需要它
 
@@ -380,25 +340,6 @@ tools/post-execute ──► 归档字节、分配 vN、在前面插入 <visual 
 | `annotate` | `true` | 在每张已归档图像前插入 `<visual id="...">`。 |
 | `retentionDays` | `7` | 删除超过该天数的归档；`0` 表示永久保留。 |
 
-## 已针对 DSH 0.2.1-rc.2 验证
-
-使用 `deepseek-flash` 做了端到端测试：
-
-1. `read_image` 返回一张图像；dsh-vista 将其归档并追加 `<visual id="v1" source="tool:read_image" size="16x16">`。
-2. `visuals` 列出了 `v1`。
-3. `inspect` 裁剪并放大了归档图像，返回一张模型可见的 1024×1024 PNG。
-4. `read_pixels` 返回了预期的 `01 / 11` 颜色采样。
-5. 模型正确描述了红蓝象限。
-
-`src/content.ts` 中的附件桥接使用：
-
-```ts
-ctx.attachments.saveImage({ data, mediaType, name })
-ctx.attachments.imageHostPath(ref)
-```
-
-两者均已在安装的 `@deepseek-ai/dsh-attachment` 中确认可用。
-
 ## 刻意不做的事
 
 - 不做环境适配器（ARC-AGI-3、GameWorld、浏览器自动化）。
@@ -407,45 +348,6 @@ ctx.attachments.imageHostPath(ref)
 - 不使用 Python sidecar。
 
 这些都属于后续插件。本插件只回答一个范围更窄的问题：可寻址的视觉记忆加上主动检视，能否提升 DSH agent 的视觉工作表现？
-
-## 开发
-
-```sh
-pnpm install
-pnpm typecheck
-pnpm build
-npm pack --dry-run
-```
-
-本包是 ESM bundle。`lib/` 为构建产物；`assets/` 存放 logo 与 README 图片。
-
-## 发布
-
-发布通过 GitHub Actions 完成，不在本地笔记本上执行。
-
-**Tag 驱动（推荐）：**
-
-```sh
-npm version patch          # 或 minor / major
-git push --follow-tags
-```
-
-**手动触发：**
-
-Actions → **Publish** → *Run workflow* → 选择 `patch`、`minor` 或 `major`。工作流会自动更新版本号、提交、打 tag 并发布。
-
-工作流使用 npm **Trusted Publishing**（OIDC），并带 provenance 发布。一次性配置：
-
-1. 打开 https://www.npmjs.com/package/dsh-vista/access
-2. 添加一个 **Trusted Publisher** → GitHub Actions：
-   - Owner：`ZhangShurong`
-   - Repository：`dsh-vista`
-   - Workflow filename：`publish.yml`
-3. 不需要配置 `NPM_TOKEN` secret。
-
-如果你更想用 token，可以添加 `NPM_TOKEN` 仓库 secret，并在发布步骤中设置 `NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}`。
-
-CI（`.github/workflows/ci.yml`）会在每次 push 和 pull request 时运行 typecheck、build 和 `npm pack --dry-run`。
 
 ## 许可证
 
