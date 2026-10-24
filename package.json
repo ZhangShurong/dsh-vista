@@ -6,6 +6,16 @@
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ZhangShurong/dsh-vista.git"
@@ -18,7 +28,12 @@
     "deepseek",
     "dsh",
     "deepseek-harness",
+    "dsh-plugin",
     "vision",
+    "multimodal",
+    "visual-memory",
+    "screenshot",
+    "inspect",
     "agent",
     "tools"
   ],
@@ -33,22 +48,24 @@
     }
   },
   "engines": {
-    "dsh": ">=0.1.0 <1.0.0"
+    "node": ">=24.9.0",
+    "dsh": ">=0.2.0-0 <0.3.0"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "prepare": "pnpm run build"
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run typecheck && npm run build"
   },
   "dependencies": {
     "sharp": "^0.34.0"
   },
   "peerDependencies": {
-    "@deepseek-ai/cordis": "*",
-    "@deepseek-ai/dsh-attachment": "*",
-    "@deepseek-ai/dsh-llm": "*",
-    "@deepseek-ai/dsh-tools": "*",
-    "@deepseek-ai/schemastery": "*"
+    "@deepseek-ai/cordis": "^4.0.5",
+    "@deepseek-ai/dsh-attachment": ">=0.2.0-0 <0.3.0",
+    "@deepseek-ai/dsh-llm": ">=0.2.0-0 <0.3.0",
+    "@deepseek-ai/dsh-tools": ">=0.2.0-0 <0.3.0",
+    "@deepseek-ai/schemastery": "^3.18.5"
   },
   "devDependencies": {
     "@deepseek-ai/cordis": "^4.0.5",
