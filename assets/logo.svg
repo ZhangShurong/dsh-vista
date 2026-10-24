@@ -1,0 +1,58 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="80" y1="40" x2="432" y2="472" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B1220"/>
+      <stop offset="1" stop-color="#07101C"/>
+    </linearGradient>
+    <linearGradient id="eye" x1="128" y1="200" x2="384" y2="312" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#67E8F9"/>
+      <stop offset="1" stop-color="#38BDF8"/>
+    </linearGradient>
+    <linearGradient id="iris" x1="210" y1="210" x2="302" y2="302" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0EA5E9"/>
+      <stop offset="1" stop-color="#0284C7"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+
+  <!-- Memory: two archived frames behind the eye -->
+  <g opacity="0.30" stroke="#38BDF8" stroke-width="9" fill="none">
+    <rect x="164" y="104" width="216" height="150" rx="24"/>
+    <rect x="132" y="132" width="216" height="150" rx="24"/>
+  </g>
+
+  <!-- Viewfinder corners -->
+  <g stroke="#22D3EE" stroke-width="16" stroke-linecap="round" fill="none" opacity="0.9">
+    <path d="M112 212V160a32 32 0 0 1 32-32h52"/>
+    <path d="M400 300v52a32 32 0 0 1-32 32h-52"/>
+  </g>
+
+  <!-- Eye -->
+  <path d="M104 268C172 176 340 176 408 268C340 360 172 360 104 268Z"
+        fill="#07111F" stroke="url(#eye)" stroke-width="18" filter="url(#glow)"/>
+
+  <!-- Pixel iris: memory is addressable at pixel scale -->
+  <circle cx="256" cy="268" r="74" fill="url(#iris)"/>
+  <g fill="#E0F2FE">
+    <rect x="220" y="232" width="30" height="30" rx="7"/>
+    <rect x="258" y="232" width="30" height="30" rx="7"/>
+    <rect x="220" y="270" width="30" height="30" rx="7"/>
+  </g>
+  <rect x="258" y="270" width="30" height="30" rx="7" fill="#7DD3FC"/>
+  <circle cx="230" cy="242" r="8" fill="#FFFFFF" opacity="0.95"/>
+
+  <!-- Memory tick: one image in context, every image in memory -->
+  <g opacity="0.75">
+    <rect x="196" y="418" width="120" height="10" rx="5" fill="#38BDF8"/>
+    <rect x="172" y="442" width="168" height="10" rx="5" fill="#22D3EE" opacity="0.55"/>
+    <rect x="148" y="466" width="216" height="10" rx="5" fill="#67E8F9" opacity="0.30"/>
+  </g>
+</svg>

@@ -1,0 +1,49 @@
+<svg width="1200" height="720" viewBox="0 0 1200 720" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="720" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#07101C"/>
+      <stop offset="1" stop-color="#0B1220"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="720" fill="url(#bg)"/>
+
+  <!-- window -->
+  <rect x="60" y="56" width="1080" height="608" rx="22" fill="#0A1422" stroke="#1E3A5F" filter="url(#shadow)"/>
+  <rect x="60" y="56" width="1080" height="54" rx="22" fill="#0E1B2E"/>
+  <rect x="60" y="90" width="1080" height="20" fill="#0E1B2E"/>
+  <circle cx="92" cy="84" r="7" fill="#F87171"/>
+  <circle cx="116" cy="84" r="7" fill="#FBBF24"/>
+  <circle cx="140" cy="84" r="7" fill="#34D399"/>
+  <text x="600" y="88" text-anchor="middle" fill="#64748B" font-family="DejaVu Sans Mono, monospace" font-size="17">dsh-vista · visual memory in action</text>
+
+  <!-- transcript -->
+  <g font-family="DejaVu Sans Mono, monospace" font-size="23">
+    <text x="100" y="176" fill="#64748B">agent</text>
+    <text x="188" y="176" fill="#E2E8F0">read_image  /tmp/screenshot.png</text>
+
+    <text x="100" y="222" fill="#38BDF8">tool</text>
+    <text x="188" y="222" fill="#94A3B8">&lt;visual id="v1" source="tool:read_image" size="1280x720"&gt;</text>
+
+    <text x="100" y="294" fill="#64748B">agent</text>
+    <text x="188" y="294" fill="#E2E8F0">inspect  v1  question="Did the button move?"</text>
+    <text x="188" y="326" fill="#94A3B8">region=1180,40,100,60</text>
+
+    <text x="100" y="372" fill="#38BDF8">tool</text>
+    <text x="188" y="372" fill="#A7F3D0">crop 512x512 ← only the region that matters</text>
+
+    <text x="100" y="444" fill="#64748B">agent</text>
+    <text x="188" y="444" fill="#E2E8F0">read_pixels  v1  region=1180,40,4,4  rows=4 columns=4</text>
+
+    <text x="100" y="490" fill="#38BDF8">tool</text>
+    <text x="188" y="490" fill="#FDE68A">0011   0011   1111   1111</text>
+    <text x="188" y="522" fill="#64748B">#FF3B30 ×2   #34C759 ×2</text>
+  </g>
+
+  <line x1="100" y1="572" x2="1100" y2="572" stroke="#1E3A5F" stroke-width="2"/>
+  <text x="100" y="612" fill="#94A3B8" font-family="DejaVu Sans, sans-serif" font-size="22">One image in context. Every image in memory.</text>
+  <text x="100" y="646" fill="#64748B" font-family="DejaVu Sans Mono, monospace" font-size="18">compaction drops the bytes, not the address</text>
+</svg>

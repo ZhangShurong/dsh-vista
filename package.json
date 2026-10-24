@@ -1,7 +1,7 @@
 {
   "name": "dsh-vista",
-  "version": "0.1.2",
-  "description": "Addressable visual memory and active inspection tools for DeepSeek Harness.",
+  "version": "0.1.3",
+  "description": "Give your DeepSeek Harness agent an addressable visual memory: revisit any image, inspect any region, and read exact pixels.",
   "license": "MIT",
   "type": "module",
   "main": "lib/index.js",
@@ -30,15 +30,20 @@
     "deepseek-harness",
     "dsh-plugin",
     "vision",
+    "visual",
     "multimodal",
     "visual-memory",
+    "image-memory",
+    "visual-inspection",
     "screenshot",
     "inspect",
+    "multimodal-agent",
     "agent",
     "tools"
   ],
   "files": [
     "lib",
+    "assets",
     "cordis.patch.yml",
     "README.md"
   ],

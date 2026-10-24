@@ -1,18 +1,113 @@
-# dsh-vista
+<p align="center">
+  <img src="https://raw.githubusercontent.com/ZhangShurong/dsh-vista/main/assets/logo.png" width="112" alt="dsh-vista logo">
+</p>
 
-Addressable visual memory and active inspection for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness).
+<h1 align="center">dsh-vista</h1>
 
-This is a small capability layer, not a second harness. It gives a DSH agent three
-tools and one working method:
+<p align="center"><b>Visual memory and active inspection for DeepSeek Harness.</b></p>
 
-- `inspect` — revisit any image it has already seen, at any region;
-- `read_pixels` — sample exact colors from a region as a symbol matrix;
-- `visuals` — list the images it has already seen;
-- plus a short system-prompt section describing when and how to use them.
+<p align="center">
+  <a href="https://www.npmjs.com/package/dsh-vista"><img alt="npm version" src="https://img.shields.io/npm/v/dsh-vista.svg"></a>
+  <a href="https://www.npmjs.com/package/dsh-vista"><img alt="npm downloads" src="https://img.shields.io/npm/dm/dsh-vista.svg"></a>
+  <a href="LICENSE"><img alt="license" src="https://img.shields.io/npm/l/dsh-vista.svg"></a>
+  <a href="https://github.com/topics/dsh-plugin"><img alt="dsh-plugin" src="https://img.shields.io/badge/dsh-plugin-8A2BE2"></a>
+</p>
 
-The hidden fourth piece is annotation: every image that reaches the model is
-tagged with a stable `visual` id, so historical images remain addressable even
-after they fall out of the model context.
+> Your agent sees an image once. dsh-vista makes it addressable forever.
+
+DSH agents work with screenshots, charts, and rendered pages, but the image that
+matters is often gone after the next tool call or compaction. dsh-vista keeps
+every image it has seen in an addressable archive and gives the agent three
+tools to go back to it:
+
+- **`inspect`** — revisit any past image and crop any region, enlarged without
+  smoothing;
+- **`read_pixels`** — sample exact colors from a region as a compact symbol
+  matrix;
+- **`visuals`** — list the images the agent has already seen.
+
+Every image that reaches the model is automatically tagged with a stable id:
+
+```html
+<visual id="v12" source="tool:read_image" size="1280x720"></visual>
+```
+
+The model can reference `v12` later even if the original image has fallen out of
+the context window.
+
+![dsh-vista in action](https://raw.githubusercontent.com/ZhangShurong/dsh-vista/main/assets/demo.png)
+
+## Why
+
+- **Compaction drops bytes, not meaning.** dsh-vista keeps the original bytes
+  addressable after the context has moved on.
+- **Re-screenshotting is expensive and lossy.** The screen has changed; the
+  image you need is the one from three steps ago.
+- **"Look at the whole image again" is not inspection.** A good visual agent
+  asks a specific question about a specific region.
+- **Text-only fallback.** `read_pixels` works even when the model route accepts
+  text only.
+
+## Install
+
+```sh
+dsh plugin --profile web add dsh-vista
+```
+
+Or pin a version:
+
+```sh
+dsh plugin --profile web add dsh-vista@0.1.3
+```
+
+Then verify:
+
+```sh
+dsh --profile web --dump-config | grep dsh-vista
+dsh --profile web
+```
+
+From a GitHub checkout:
+
+```sh
+dsh plugin --profile web add github:ZhangShurong/dsh-vista#v0.1.3
+```
+
+## Tools
+
+| Tool | What it does | Output |
+| --- | --- | --- |
+| `inspect` | Select an archived `visual` and an optional region; crops from the original and enlarges with nearest-neighbour. | Image blocks |
+| `read_pixels` | Divide a region into equal rows and columns; sample each centre pixel. | Palette + symbol rows |
+| `visuals` | List recent visuals with id, source, size, and timestamp. | JSON |
+
+Example `inspect`:
+
+```json
+{
+  "question": "Did the button move after the click?",
+  "views": [
+    {
+      "label": "button before",
+      "visual": "v11",
+      "region": { "x": 1180, "y": 40, "width": 100, "height": 60 }
+    }
+  ]
+}
+```
+
+Example `read_pixels` result:
+
+```json
+{
+  "palette": { "0": "#FF0000", "1": "#0000FF" },
+  "views": [
+    { "label": "quadrant", "visual": "v1", "rows": 2, "columns": 2, "samples": ["01", "11"] }
+  ]
+}
+```
+
+`read_pixels` only measures. It does not align, transform, or interpret pixels.
 
 ## How it works
 
@@ -30,37 +125,10 @@ tools/post-execute ──► archive bytes, assign vN, prepend <visual id="vN">
         └── visuals()                 ──► index of previous images
 ```
 
-The archive keeps a second copy of the bytes on disk. DSH's attachment service
-still owns the image that reaches the model; the archive exists so visual ids
-survive context compaction and image offload.
-
-## Requirements
-
-- A DSH build with the `tools`, `systemPrompt`, and `attachments` services.
-- A model route that accepts images (`deepseek-flash` does). With a text-only
-  model, `inspect` cannot help; `read_pixels` still can.
-
-## Build
-
-```sh
-pnpm install
-pnpm build
-```
-
-## Install into a profile
-
-```sh
-dsh plugin --profile web add /path/to/dsh-vista
-dsh --profile web --dump-config   # expect a dsh-vista layer
-dsh --profile web
-```
-
-For development:
-
-```sh
-dsh plugin --profile web add ./
-dsh web
-```
+The archive is content-addressed and append-only (`index.jsonl` plus files under
+`archiveDir`). DSH's attachment service still owns the image that reaches the
+model; dsh-vista keeps a second copy so visual ids survive compaction and image
+offload.
 
 ## Configuration
 
@@ -89,75 +157,11 @@ profile patch:
 | `annotate` | `true` | Insert `<visual id="...">` before every archived image. |
 | `retentionDays` | `7` | Delete older archived visuals; `0` keeps forever. |
 
-## Tools
-
-### `inspect`
-
-```json
-{
-  "question": "Did the button change after the click?",
-  "views": [
-    {
-      "label": "button before",
-      "visual": "v11",
-      "region": { "x": 880, "y": 40, "width": 120, "height": 60 }
-    }
-  ]
-}
-```
-
-Crops from the archived original and enlarges with nearest-neighbour. Omitting
-`region` inspects the whole image.
-
-### `read_pixels`
-
-```json
-{
-  "question": "Which color is the target cell?",
-  "views": [
-    {
-      "label": "target cell",
-      "visual": "v12",
-      "region": { "x": 32, "y": 32, "width": 16, "height": 16 },
-      "rows": 4,
-      "columns": 4
-    }
-  ]
-}
-```
-
-Returns a palette and one symbol string per sampled row. It measures pixels; it
-does not interpret them.
-
-### `visuals`
-
-```json
-{ "limit": 20 }
-```
-
-Returns the recent `visual` ids with source, size, label, and timestamp.
-
-## System-prompt section
-
-`src/prompt.ts` adds the method: revisit before re-requesting, ask a specific
-question per view, use exact measurements when a judgement needs them, and keep
-a compact, revisable model of what is visible.
-
-## What this deliberately does not do
-
-- No environment adapters (ARC-AGI-3, GameWorld, browser automation).
-- No `play` / `act` action tools.
-- No one-action-per-turn policy, budgets, or evaluation harness.
-- No Python sidecar.
-
-Those belong in follow-up plugins. This one only answers whether addressable
-visual memory plus active inspection improves a DSH agent's visual work.
-
 ## Verified against DSH 0.2.1-rc.2
 
 Tested end to end with `deepseek-flash`:
 
-1. `read_image` returned an image; the plugin archived it and appended
+1. `read_image` returned an image; dsh-vista archived it and appended
    `<visual id="v1" source="tool:read_image" size="16x16">`.
 2. `visuals` listed `v1`.
 3. `inspect` cropped and enlarged the archived image and returned a
@@ -174,11 +178,29 @@ ctx.attachments.imageHostPath(ref)
 
 Both are confirmed in the installed `@deepseek-ai/dsh-attachment`.
 
+## What this deliberately does not do
+
+- No environment adapters (ARC-AGI-3, GameWorld, browser automation).
+- No `play` / `act` action tools.
+- No one-action-per-turn policy, budgets, or evaluation harness.
+- No Python sidecar.
+
+Those belong in follow-up plugins. This one answers a narrower question: does
+addressable visual memory plus active inspection improve a DSH agent's visual
+work?
+
 ## Development
 
 ```sh
+pnpm install
 pnpm typecheck
+pnpm build
+npm pack --dry-run
 ```
 
-The archive format is append-only `index.jsonl` plus content-addressed files.
-Deleting the archive directory is safe; ids restart from `v1`.
+The package is an ESM bundle. `lib/` is generated; `assets/` contains the logo
+and README images.
+
+## License
+
+MIT
