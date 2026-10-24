@@ -11,8 +11,8 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/dsh-vista"><img alt="npm version" src="https://img.shields.io/npm/v/dsh-vista.svg"></a>
-  <a href="https://www.npmjs.com/package/dsh-vista"><img alt="npm downloads" src="https://img.shields.io/npm/dm/dsh-vista.svg"></a>
+  <a href="https://www.npmjs.com/package/dsh-vista"><img alt="npm version" src="https://img.shields.io/npm/v/dsh-vista.svg?cacheSeconds=3600"></a>
+  <a href="https://www.npmjs.com/package/dsh-vista"><img alt="npm downloads" src="https://img.shields.io/npm/dm/dsh-vista.svg?cacheSeconds=3600"></a>
   <a href="LICENSE"><img alt="license" src="https://img.shields.io/npm/l/dsh-vista.svg"></a>
   <a href="https://github.com/topics/dsh-plugin"><img alt="dsh-plugin" src="https://img.shields.io/badge/dsh-plugin-8A2BE2"></a>
   <a href="https://github.com/ZhangShurong/dsh-vista/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/ZhangShurong/dsh-vista/actions/workflows/ci.yml/badge.svg"></a>
