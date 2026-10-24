@@ -11,6 +11,7 @@
   <a href="https://www.npmjs.com/package/dsh-vista"><img alt="npm downloads" src="https://img.shields.io/npm/dm/dsh-vista.svg"></a>
   <a href="LICENSE"><img alt="license" src="https://img.shields.io/npm/l/dsh-vista.svg"></a>
   <a href="https://github.com/topics/dsh-plugin"><img alt="dsh-plugin" src="https://img.shields.io/badge/dsh-plugin-8A2BE2"></a>
+  <a href="https://github.com/ZhangShurong/dsh-vista/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/ZhangShurong/dsh-vista/actions/workflows/ci.yml/badge.svg"></a>
 </p>
 
 > Your agent sees an image once. dsh-vista makes it addressable forever.
@@ -200,6 +201,38 @@ npm pack --dry-run
 
 The package is an ESM bundle. `lib/` is generated; `assets/` contains the logo
 and README images.
+
+## Releasing
+
+Publishing runs in GitHub Actions, not from a laptop.
+
+**Tag-driven (recommended):**
+
+```sh
+npm version patch          # or minor / major
+git push --follow-tags
+```
+
+**Manual button:**
+
+Actions → **Publish** → *Run workflow* → choose `patch`, `minor`, or `major`.
+The workflow bumps the version, commits, tags, and publishes.
+
+The workflow uses npm **Trusted Publishing** (OIDC) and publishes with
+provenance. One-time setup:
+
+1. Open https://www.npmjs.com/package/dsh-vista/access
+2. Add a **Trusted Publisher** → GitHub Actions:
+   - Owner: `ZhangShurong`
+   - Repository: `dsh-vista`
+   - Workflow filename: `publish.yml`
+3. No `NPM_TOKEN` secret is needed.
+
+If you prefer a token instead, add an `NPM_TOKEN` repository secret and set
+`NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}` on the publish step.
+
+CI (`.github/workflows/ci.yml`) runs typecheck, build, and `npm pack --dry-run`
+on every push and pull request.
 
 ## License
 
