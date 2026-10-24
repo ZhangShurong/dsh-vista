@@ -1,0 +1,7 @@
+# dsh-vista bundle layer
+#
+# The plugin row loads this package's entry point. Configuration is optional;
+# defaults live in src/config.ts and can be overridden here or in the profile.
+- insert:
+    - id: dsh-vista
+      name: dsh-vista
