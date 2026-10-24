@@ -1,6 +1,6 @@
 {
   "name": "dsh-vista",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Addressable visual memory and active inspection tools for DeepSeek Harness.",
   "license": "MIT",
   "type": "module",

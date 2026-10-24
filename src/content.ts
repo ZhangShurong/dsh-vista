@@ -5,12 +5,11 @@ import type { ContentBlock, ImageBlock } from '@deepseek-ai/dsh-llm'
 import type { StoredVisual } from './archive.js'
 
 /**
- * DSH keeps image bytes behind an attachment reference. The host may expose a
- * read-only path for same-process consumers; otherwise the attachment service
- * must be used to materialize the request variant.
+ * DSH keeps image bytes behind an attachment reference. `imageHostPath` is the
+ * host-side read path; `readFileStream` is the fallback for backends that do
+ * not expose one.
  *
- * TODO(spike): confirm the exact `imageHostPath` / read API on the installed
- * @deepseek-ai/dsh-attachment version.
+ * Verified against dsh 0.2.1-rc.2.
  */
 export async function readImageBytes(ctx: any, attachment: any): Promise<Buffer> {
   const hostPath = ctx.attachments?.imageHostPath?.(attachment)
@@ -31,11 +30,13 @@ export async function readImageBytes(ctx: any, attachment: any): Promise<Buffer>
  * block. Tools must not hand raw base64 to the model directly: ImageBlock
  * carries an attachment reference so the provider adapter can choose the
  * request dimensions and encoding.
- *
- * TODO(spike): confirm the `saveFile` signature and media-type option name.
  */
 export async function imageBlock(ctx: any, data: Buffer, mimeType: string): Promise<ImageBlock> {
-  const attachment = await ctx.attachments.saveFile(data, { mediaType: mimeType })
+  const attachment = await ctx.attachments.saveImage({
+    data,
+    mediaType: mimeType,
+    name: 'dsh-vista-inspect.png',
+  })
   return { type: 'image', attachment } as ImageBlock
 }
 

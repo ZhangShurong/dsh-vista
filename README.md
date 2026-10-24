@@ -153,18 +153,26 @@ a compact, revisable model of what is visible.
 Those belong in follow-up plugins. This one only answers whether addressable
 visual memory plus active inspection improves a DSH agent's visual work.
 
-## Two things to verify against the installed DSH build
+## Verified against DSH 0.2.1-rc.2
 
-1. **Image content blocks.** `ImageBlock` carries an `attachment` reference, not
-   bytes. `src/content.ts` uses `ctx.attachments.saveFile(bytes, { mediaType })`;
-   confirm the exact signature and option name in your `@deepseek-ai/dsh-attachment`
-   version.
-2. **Reading attachment bytes.** `src/content.ts` prefers
-   `ctx.attachments.imageHostPath(ref)` and falls back to `readFileStream`.
-   Confirm the available host-side read API in your build.
+Tested end to end with `deepseek-flash`:
 
-Both are isolated in `src/content.ts`; the rest of the plugin does not depend on
-the answer.
+1. `read_image` returned an image; the plugin archived it and appended
+   `<visual id="v1" source="tool:read_image" size="16x16">`.
+2. `visuals` listed `v1`.
+3. `inspect` cropped and enlarged the archived image and returned a
+   model-visible 1024×1024 PNG.
+4. `read_pixels` returned the expected `01 / 11` color samples.
+5. The model correctly described the red/blue quadrants.
+
+The attachment bridge in `src/content.ts` uses:
+
+```ts
+ctx.attachments.saveImage({ data, mediaType, name })
+ctx.attachments.imageHostPath(ref)
+```
+
+Both are confirmed in the installed `@deepseek-ai/dsh-attachment`.
 
 ## Development
 

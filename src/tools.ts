@@ -44,11 +44,9 @@ const INSPECT_OUTPUT_SCHEMA = {
           width: { type: 'number' as const },
           height: { type: 'number' as const },
         },
-        required: ['label', 'visual', 'width', 'height'],
       },
     },
   },
-  required: ['views'],
 }
 
 export function registerTools(ctx: Context, archive: VisualArchive, config: Config): void {
