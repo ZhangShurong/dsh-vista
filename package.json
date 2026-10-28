@@ -1,6 +1,6 @@
 {
   "name": "dsh-vista",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Give your DeepSeek Harness agent an addressable visual memory: revisit any image, inspect any region, and read exact pixels.",
   "license": "MIT",
   "type": "module",
