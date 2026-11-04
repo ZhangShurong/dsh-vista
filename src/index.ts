@@ -3,6 +3,7 @@ import type { Context } from '@deepseek-ai/cordis'
 import { VisualArchive } from './archive.js'
 import { registerAnnotator } from './annotate.js'
 import { Config, type Config as ConfigType } from './config.js'
+import { resolveMemoryDir, VistaMemory } from './memory.js'
 import { registerPrompt } from './prompt.js'
 import { registerTools } from './tools.js'
 
@@ -17,10 +18,11 @@ export const inject = ['tools', 'systemPrompt', 'attachments']
 export async function apply(ctx: Context, config: ConfigType): Promise<void> {
   const archive = new VisualArchive(config)
   await archive.open()
+  const memory = new VistaMemory(resolveMemoryDir(config.archiveDir))
 
   registerPrompt(ctx)
   registerAnnotator(ctx, archive, config)
-  registerTools(ctx, archive, config)
+  registerTools(ctx, archive, memory, config)
 
   ctx.effect(() => () => archive.close())
 }

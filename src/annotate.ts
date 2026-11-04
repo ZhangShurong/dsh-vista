@@ -1,7 +1,7 @@
 import type { Context } from '@deepseek-ai/cordis'
 import type { ContentBlock } from '@deepseek-ai/dsh-llm'
 
-import type { VisualArchive } from './archive.js'
+import type { StoredVisual, VisualArchive } from './archive.js'
 import type { Config } from './config.js'
 import { isVisualLabel, readImageBytes, visualLabel } from './content.js'
 
@@ -26,6 +26,7 @@ export function registerAnnotator(ctx: Context, archive: VisualArchive, config: 
     if (!content?.some((block) => block.type === 'image')) return decision
 
     const annotated: ContentBlock[] = []
+    const delivered: StoredVisual[] = []
     for (const block of content) {
       if (block.type !== 'image') {
         annotated.push(block)
@@ -47,11 +48,23 @@ export function registerAnnotator(ctx: Context, archive: VisualArchive, config: 
           label: `result of ${toolName}`,
           callId: String(exec.callId ?? ''),
         })
+        delivered.push(visual)
         annotated.push({ type: 'text', text: visualLabel(visual) })
       } catch {
         // Archiving must never break the tool result itself.
       }
       annotated.push(block)
+    }
+
+    if (delivered.length > 0) {
+      try {
+        await archive.recordEvent({
+          tool: String(exec.name ?? 'tool'),
+          visuals: delivered,
+        })
+      } catch {
+        // Timeline persistence must never break the tool result itself.
+      }
     }
 
     return {
