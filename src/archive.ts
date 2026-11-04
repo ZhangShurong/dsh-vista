@@ -20,6 +20,17 @@ export interface VisualMeta {
   callId?: string
 }
 
+export interface VisualReference {
+  visual: string
+  frame: number
+}
+
+export interface VisualEvent {
+  turn: number
+  tool: string
+  visuals: VisualReference[]
+}
+
 export interface StoredVisual {
   /** Stable model-facing id, e.g. "v12". */
   id: string
@@ -63,11 +74,15 @@ export class VisualArchive {
   private readonly bySha = new Map<string, StoredVisual>()
   private readonly byId = new Map<string, StoredVisual>()
   private readonly indexPath: string
+  private readonly timelinePath: string
+  private events: VisualEvent[] = []
   private nextId = 1
+  private nextTurn = 0
   private writeChain: Promise<void> = Promise.resolve()
 
   constructor(private readonly config: Config) {
     this.indexPath = join(config.archiveDir, 'index.jsonl')
+    this.timelinePath = join(config.archiveDir, 'timeline.jsonl')
   }
 
   async open(): Promise<void> {
@@ -90,6 +105,24 @@ export class VisualArchive {
         this.nextId = Math.max(this.nextId, Number(visual.id.slice(1)) + 1)
       } catch {
         // A torn final line should not make the whole archive unreadable.
+      }
+    }
+
+    let timeline = ''
+    try {
+      timeline = await readFile(this.timelinePath, 'utf8')
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
+    }
+    for (const line of timeline.split('\n')) {
+      if (!line.trim()) continue
+      try {
+        const event = JSON.parse(line) as VisualEvent
+        if (!Number.isInteger(event.turn) || !Array.isArray(event.visuals)) continue
+        this.events.push(event)
+        this.nextTurn = Math.max(this.nextTurn, event.turn + 1)
+      } catch {
+        // A torn final line should not make the timeline unreadable.
       }
     }
 
@@ -140,6 +173,56 @@ export class VisualArchive {
   list(limit = 20): StoredVisual[] {
     const values = [...this.byId.values()]
     return values.slice(Math.max(0, values.length - limit))
+  }
+
+  async recordEvent(input: { tool: string; visuals: Array<StoredVisual | string> }): Promise<VisualEvent> {
+    const event: VisualEvent = {
+      turn: this.nextTurn++,
+      tool: String(input.tool || 'tool'),
+      visuals: input.visuals.map((visual, frame) => ({
+        visual: typeof visual === 'string' ? visual : visual.id,
+        frame,
+      })),
+    }
+    this.events.push(event)
+    this.writeChain = this.writeChain.then(async () => {
+      await writeFile(this.timelinePath, `${JSON.stringify(event)}\n`, {
+        flag: 'a',
+        mode: 0o600,
+      })
+    })
+    await this.writeChain
+    return event
+  }
+
+  history(options: { startTurn?: number; endTurn?: number; limit?: number } = {}): VisualEvent[] {
+    const limit = Math.max(1, Math.min(128, Math.floor(options.limit ?? 64)))
+    const events = this.events.filter((event) =>
+      (options.startTurn === undefined || event.turn >= options.startTurn) &&
+      (options.endTurn === undefined || event.turn < options.endTurn))
+    return events.slice(Math.max(0, events.length - limit))
+  }
+
+  async resolveView(selection: { visual?: string; turn?: number; frame?: number }): Promise<{
+    visual: StoredVisual
+    turn?: number
+    frame?: number
+  }> {
+    if (selection.visual) {
+      const visual = this.require(selection.visual)
+      const occurrence = [...this.events]
+        .reverse()
+        .flatMap((event) => event.visuals.map((view) => ({ ...view, turn: event.turn })))
+        .find((view) => view.visual === selection.visual)
+      return { visual, turn: occurrence?.turn, frame: occurrence?.frame }
+    }
+    if (!Number.isInteger(selection.turn)) throw new Error('Each view requires visual or turn')
+    const event = this.events.find((candidate) => candidate.turn === selection.turn)
+    if (!event) throw new Error(`Unknown turn: ${selection.turn}`)
+    const frame = selection.frame ?? event.visuals.at(-1)?.frame
+    const reference = event.visuals.find((candidate) => candidate.frame === frame)
+    if (!reference) throw new Error(`Unknown frame ${frame} at turn ${selection.turn}`)
+    return { visual: this.require(reference.visual), turn: event.turn, frame: reference.frame }
   }
 
   async read(id: string): Promise<Buffer> {

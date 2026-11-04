@@ -26,14 +26,16 @@
 
 DSH agents work with screenshots, charts, and rendered pages, but the image that
 matters is often gone after the next tool call or compaction. dsh-vista keeps
-every image it has seen in an addressable archive and gives the agent three
-tools to go back to it:
+every image it has seen in an addressable archive and gives the agent a visual
+history plus active inspection and persistent task memory:
 
 - **`inspect`** — revisit any past image and crop any region, enlarged without
   smoothing;
 - **`read_pixels`** — sample exact colors from a region as a compact symbol
   matrix;
-- **`visuals`** — list the images the agent has already seen.
+- **`history` / `visuals`** — recover prior turns, frames, and stable ids;
+- **`GUIDE.md` / `WORKING.md`** — keep durable knowledge and compact-handoff
+  state across context boundaries.
 
 Every image that reaches the model is automatically tagged with a stable id:
 
@@ -102,6 +104,11 @@ dsh plugin --profile web add github:ZhangShurong/dsh-vista#v0.1.3
 | `inspect` | Select an archived `visual` and an optional region; crops from the original and enlarges with nearest-neighbour. | Image blocks |
 | `read_pixels` | Divide a region into equal rows and columns; sample each centre pixel. | Palette + symbol rows |
 | `visuals` | List recent visuals with id, source, size, and timestamp. | JSON |
+| `history` | List visual-bearing events and their ordered turn/frame references. | JSON |
+| `register_image` | Archive an explicit local path that was not captured automatically. | JSON |
+| `read_guide` / `write_guide` | Read or replace durable workspace-scoped visual knowledge. | Text / status |
+| `read_working` / `write_working` | Read or replace temporary continuation state. | Text / status |
+| `save_compact_checkpoint` | Save WORKING and optionally replace GUIDE before a context handoff. | Status |
 
 Example `inspect`:
 
@@ -162,8 +169,8 @@ profile patch:
   config:
     archiveDir: /home/me/.dsh/dsh-vista/archive
     displaySize: 1024
-    maxInspectViews: 8
-    maxPixelViews: 16
+    maxInspectViews: 16
+    maxPixelViews: 64
     maxPixelSamples: 4096
     annotate: true
     retentionDays: 7
@@ -173,8 +180,8 @@ profile patch:
 | --- | --- | --- |
 | `archiveDir` | `$DSH_HOME/dsh-vista/archive` | Byte store and `index.jsonl`. |
 | `displaySize` | `1024` | Longest edge of an inspected crop. |
-| `maxInspectViews` | `8` | Views per `inspect` call. |
-| `maxPixelViews` | `16` | Views per `read_pixels` call. |
+| `maxInspectViews` | `16` | Views per `inspect` call. |
+| `maxPixelViews` | `64` | Views per `read_pixels` call. |
 | `maxPixelSamples` | `4096` | Total samples per `read_pixels` call. |
 | `annotate` | `true` | Insert `<visual id="...">` before every archived image. |
 | `retentionDays` | `7` | Delete older archived visuals; `0` keeps forever. |
@@ -200,11 +207,12 @@ MIT
 
 > 你的 agent 只见过一张图一次，dsh-vista 让它永久可寻址。
 
-DSH agent 经常要处理截图、图表和渲染后的页面，但真正重要的那张图，往往在下一次工具调用或上下文压缩之后就消失了。dsh-vista 会把 agent 见过的每一张图保存进一个可寻址的归档，并提供三个工具让它随时回去查看：
+DSH agent 经常要处理截图、图表和渲染后的页面，但真正重要的那张图，往往在下一次工具调用或上下文压缩之后就消失了。dsh-vista 会把 agent 见过的每一张图保存进一个可寻址的归档，并提供 turn/frame 历史、主动检视与持久任务记忆：
 
 - **`inspect`** —— 重新查看任意历史图像并裁剪任意区域，以无平滑插值的方式放大；
 - **`read_pixels`** —— 把某个区域采样成紧凑的符号矩阵，读取精确颜色；
-- **`visuals`** —— 列出 agent 已经见过的图像。
+- **`history` / `visuals`** —— 找回历史 turn、frame 与稳定 id；
+- **`GUIDE.md` / `WORKING.md`** —— 跨上下文边界保存长期知识和续跑状态。
 
 每一张送到模型面前的图像都会自动带上一个稳定的 id：
 
@@ -267,6 +275,11 @@ dsh plugin --profile web add github:ZhangShurong/dsh-vista#v0.1.3
 | `inspect` | 选择一个已归档的 `visual` 和可选区域；从原图裁剪，并用最近邻插值放大。 | 图像块 |
 | `read_pixels` | 把区域划分成等分的行和列，采样每个格子中心像素。 | 调色板 + 符号行 |
 | `visuals` | 列出最近的 visual，包含 id、来源、尺寸和时间戳。 | JSON |
+| `history` | 列出含视觉的事件及有序 turn/frame 引用。 | JSON |
+| `register_image` | 登记未被自动捕获的本地图像路径。 | JSON |
+| `read_guide` / `write_guide` | 读写工作区隔离的长期视觉知识。 | 文本 / 状态 |
+| `read_working` / `write_working` | 读写当前续跑状态。 | 文本 / 状态 |
+| `save_compact_checkpoint` | 压缩交接前保存 WORKING，并可选更新 GUIDE。 | 状态 |
 
 `inspect` 示例：
 
@@ -323,8 +336,8 @@ tools/post-execute ──► 归档字节、分配 vN、在前面插入 <visual 
   config:
     archiveDir: /home/me/.dsh/dsh-vista/archive
     displaySize: 1024
-    maxInspectViews: 8
-    maxPixelViews: 16
+    maxInspectViews: 16
+    maxPixelViews: 64
     maxPixelSamples: 4096
     annotate: true
     retentionDays: 7
@@ -334,8 +347,8 @@ tools/post-execute ──► 归档字节、分配 vN、在前面插入 <visual 
 | --- | --- | --- |
 | `archiveDir` | `$DSH_HOME/dsh-vista/archive` | 字节存储与 `index.jsonl` 所在目录。 |
 | `displaySize` | `1024` | 检视裁剪图的最长边。 |
-| `maxInspectViews` | `8` | 单次 `inspect` 调用允许的视图数。 |
-| `maxPixelViews` | `16` | 单次 `read_pixels` 调用允许的视图数。 |
+| `maxInspectViews` | `16` | 单次 `inspect` 调用允许的视图数。 |
+| `maxPixelViews` | `64` | 单次 `read_pixels` 调用允许的视图数。 |
 | `maxPixelSamples` | `4096` | 单次 `read_pixels` 调用的采样总数。 |
 | `annotate` | `true` | 在每张已归档图像前插入 `<visual id="...">`。 |
 | `retentionDays` | `7` | 删除超过该天数的归档；`0` 表示永久保留。 |
